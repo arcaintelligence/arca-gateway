@@ -1,0 +1,35 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+rule_files: []
+
+scrape_configs:
+  # ARCA Gateway
+  - job_name: 'arca-gateway'
+    static_configs:
+      - targets: ['gateway:8080']
+    metrics_path: /metrics
+    scrape_interval: 10s
+
+  # AGNO MCP Server
+  - job_name: 'arca-mcp'
+    static_configs:
+      - targets: ['mcp:8000']
+    metrics_path: /metrics
+    scrape_interval: 30s
+
+  # Redis
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+
+  # PostgreSQL (requires postgres_exporter)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']

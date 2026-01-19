@@ -1,0 +1,121 @@
+version: '3.8'
+
+services:
+  # ARCA Gateway
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ENVIRONMENT=development
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8080
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-key-change-in-production}
+      - MCP_BASE_URL=http://mcp:8000
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=arca
+      - DB_PASSWORD=arca_password
+      - DB_NAME=arca
+    depends_on:
+      - redis
+      - postgres
+      - mcp
+    networks:
+      - arca-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # AGNO MCP Server (Python)
+  mcp:
+    build:
+      context: ../agno-arca
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - ../agno-arca/config:/app/config
+      - ../agno-arca/evidence:/app/evidence
+    networks:
+      - arca-network
+    restart: unless-stopped
+
+  # Redis (Rate Limiting & Cache)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - arca-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # PostgreSQL (Persistence)
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=arca
+      - POSTGRES_PASSWORD=arca_password
+      - POSTGRES_DB=arca
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    networks:
+      - arca-network
+    restart: unless-stopped
+
+  # Prometheus (Metrics)
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    networks:
+      - arca-network
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+
+  # Grafana (Dashboards)
+  grafana:
+    image: grafana/grafana:10.1.0
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - arca-network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+networks:
+  arca-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+  postgres-data:
+  prometheus-data:
+  grafana-data:
