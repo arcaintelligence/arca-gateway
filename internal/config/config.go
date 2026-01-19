@@ -132,7 +132,7 @@ func Load() *Config {
 			CleanupInterval:   getDurationEnv("RATE_LIMIT_CLEANUP", 1*time.Minute),
 		},
 		CORS: CORSConfig{
-			AllowOrigins:     []string{"*"},
+			AllowOrigins:     []string{"http://localhost:3000", "http://localhost:8080", "https://arca.intelligence"},
 			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
 			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Tenant-ID", "X-Client-ID", "X-Request-ID"},
 			AllowCredentials: true,

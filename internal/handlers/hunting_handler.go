@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"github.com/arcaintelligence/arca-gateway/internal/mcp"
-	"github.com/arcaintelligence/arca-gateway/internal/middleware"
 	"github.com/arcaintelligence/arca-gateway/internal/models"
 	"github.com/arcaintelligence/arca-gateway/pkg/response"
 	"github.com/gofiber/fiber/v2"
