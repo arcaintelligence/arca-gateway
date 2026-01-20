@@ -87,7 +87,7 @@ type MCPRequest struct {
 type MCPResponse struct {
 	Success   bool                   `json:"success"`
 	RequestID string                 `json:"request_id"`
-	JobID     *uuid.UUID             `json:"job_id,omitempty"`
+	JobID     string                 `json:"job_id,omitempty"`
 	Data      map[string]interface{} `json:"data,omitempty"`
 	Error     *MCPError              `json:"error,omitempty"`
 	Timestamp string                 `json:"timestamp"`
@@ -149,8 +149,8 @@ func (c *MCPClient) Hunt(ctx context.Context, req *MCPRequest, huntReq *HuntRequ
 		Timestamp: time.Now().UTC().Format(time.RFC3339),
 	}
 
-	if resp.JobID != nil {
-		huntResp.HuntID = *resp.JobID
+	if resp.JobID != "" {
+		huntResp.HuntID = uuid.MustParse(resp.JobID)
 		huntResp.Status = "processing"
 	}
 
@@ -205,8 +205,8 @@ func (c *MCPClient) ScanURL(ctx context.Context, req *MCPRequest, scanReq *ScanR
 		Timestamp: time.Now().UTC().Format(time.RFC3339),
 	}
 
-	if resp.JobID != nil {
-		scanResp.ScanID = *resp.JobID
+	if resp.JobID != "" {
+		scanResp.ScanID = uuid.MustParse(resp.JobID)
 	}
 
 	return scanResp, nil
@@ -252,8 +252,11 @@ func (c *MCPClient) CreateMonitorJob(ctx context.Context, req *MCPRequest, monit
 	}
 
 	jobID := uuid.New()
-	if resp.JobID != nil {
-		jobID = *resp.JobID
+	if resp.JobID != "" {
+		parsedID, err := uuid.Parse(resp.JobID)
+		if err == nil {
+			jobID = parsedID
+		}
 	}
 
 	return &MonitorJobResponse{
@@ -317,8 +320,11 @@ func (c *MCPClient) AnalyzeURL(ctx context.Context, req *MCPRequest, analyzeReq 
 	}
 
 	analysisID := uuid.New()
-	if resp.JobID != nil {
-		analysisID = *resp.JobID
+	if resp.JobID != "" {
+		parsedID, err := uuid.Parse(resp.JobID)
+		if err == nil {
+			analysisID = parsedID
+		}
 	}
 
 	return &AnalyzeResponse{
@@ -387,6 +393,15 @@ func (c *MCPClient) SearchLeaks(ctx context.Context, req *MCPRequest, searchReq 
 		Total:     len(results),
 		Timestamp: time.Now().UTC().Format(time.RFC3339),
 	}, nil
+}
+
+// =============================================================================
+// PROXY METHODS
+// =============================================================================
+
+// ProxyRequest faz proxy de uma request genérica para o Core Python
+func (c *MCPClient) ProxyRequest(ctx context.Context, endpoint string, req *MCPRequest) (*MCPResponse, error) {
+	return c.execute(ctx, endpoint, req)
 }
 
 // =============================================================================

@@ -67,6 +67,7 @@ func main() {
 	authHandler := handlers.NewAuthHandler(jwtManager, userService)
 	clientHandler := handlers.NewClientHandler(clientService, brandService)
 	huntingHandler := handlers.NewHuntingHandler(mcpClient)
+	onboardingHandler := handlers.NewOnboardingHandler(mcpClient)
 
 	// Criar Auth Middleware
 	authMiddleware := middleware.NewAuthMiddleware(jwtManager)
@@ -124,6 +125,24 @@ func main() {
 	authRoutes.Post("/login", authHandler.Login)
 	authRoutes.Post("/register", authHandler.Register)
 	authRoutes.Post("/refresh", authHandler.RefreshToken)
+
+	// Onboarding routes (public - registro inicial)
+	onboardingRoutes := v1.Group("/onboarding")
+	onboardingRoutes.Post("/register", onboardingHandler.Register)
+	onboardingRoutes.Post("/verify-email", onboardingHandler.VerifyEmail)
+
+	// Brand routes (protected - via onboarding handler que faz proxy para Core Python)
+	brandRoutesNew := v1.Group("/brands", authMiddleware.Authenticate())
+	brandRoutesNew.Get("/", onboardingHandler.ListBrands)
+	brandRoutesNew.Post("/", onboardingHandler.CreateBrand)
+	brandRoutesNew.Get("/:brand_id", onboardingHandler.GetBrand)
+	brandRoutesNew.Post("/:brand_id/monitoring/start", onboardingHandler.StartMonitoring)
+	brandRoutesNew.Post("/:brand_id/monitoring/stop", onboardingHandler.StopMonitoring)
+	brandRoutesNew.Get("/:brand_id/monitoring/status", onboardingHandler.GetMonitoringStatus)
+
+	// Threats routes (protected)
+	threatsRoutes := v1.Group("/threats", authMiddleware.Authenticate())
+	threatsRoutes.Get("/", onboardingHandler.GetThreats)
 
 	// Auth routes (protected)
 	authProtected := authRoutes.Group("", authMiddleware.Authenticate())
