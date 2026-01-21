@@ -143,8 +143,13 @@ func (h *OnboardingHandler) CreateBrand(c *fiber.Ctx) error {
 		return response.BadRequest(c, "Invalid request body: "+err.Error())
 	}
 
-	// Obter client_id do contexto ou header
-	clientID := c.Get("X-Client-ID")
+	// Obter client_id do contexto (JWT) ou header
+	clientID := ""
+	if cid, ok := c.Locals("client_id").(string); ok && cid != "" {
+		clientID = cid
+	} else {
+		clientID = c.Get("X-Client-ID")
+	}
 
 	// Preparar params
 	params := map[string]interface{}{
@@ -195,7 +200,12 @@ func (h *OnboardingHandler) CreateBrand(c *fiber.Ctx) error {
 // GetBrand obtém detalhes de uma marca
 func (h *OnboardingHandler) GetBrand(c *fiber.Ctx) error {
 	brandID := c.Params("brand_id")
-	clientID := c.Get("X-Client-ID")
+	clientID := ""
+	if cid, ok := c.Locals("client_id").(string); ok && cid != "" {
+		clientID = cid
+	} else {
+		clientID = c.Get("X-Client-ID")
+	}
 
 	mcpReq := &mcp.MCPRequest{
 		RequestID: uuid.New().String(),
@@ -218,7 +228,12 @@ func (h *OnboardingHandler) GetBrand(c *fiber.Ctx) error {
 
 // ListBrands lista todas as marcas do cliente
 func (h *OnboardingHandler) ListBrands(c *fiber.Ctx) error {
-	clientID := c.Get("X-Client-ID")
+	clientID := ""
+	if cid, ok := c.Locals("client_id").(string); ok && cid != "" {
+		clientID = cid
+	} else {
+		clientID = c.Get("X-Client-ID")
+	}
 
 	mcpReq := &mcp.MCPRequest{
 		RequestID: uuid.New().String(),
@@ -241,7 +256,12 @@ func (h *OnboardingHandler) ListBrands(c *fiber.Ctx) error {
 // StartMonitoring inicia o monitoramento de uma marca
 func (h *OnboardingHandler) StartMonitoring(c *fiber.Ctx) error {
 	brandID := c.Params("brand_id")
-	clientID := c.Get("X-Client-ID")
+	clientID := ""
+	if cid, ok := c.Locals("client_id").(string); ok && cid != "" {
+		clientID = cid
+	} else {
+		clientID = c.Get("X-Client-ID")
+	}
 
 	var req StartMonitoringRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -275,7 +295,12 @@ func (h *OnboardingHandler) StartMonitoring(c *fiber.Ctx) error {
 // StopMonitoring para o monitoramento de uma marca
 func (h *OnboardingHandler) StopMonitoring(c *fiber.Ctx) error {
 	brandID := c.Params("brand_id")
-	clientID := c.Get("X-Client-ID")
+	clientID := ""
+	if cid, ok := c.Locals("client_id").(string); ok && cid != "" {
+		clientID = cid
+	} else {
+		clientID = c.Get("X-Client-ID")
+	}
 
 	mcpReq := &mcp.MCPRequest{
 		RequestID: uuid.New().String(),
@@ -299,7 +324,12 @@ func (h *OnboardingHandler) StopMonitoring(c *fiber.Ctx) error {
 // GetMonitoringStatus obtém o status do monitoramento
 func (h *OnboardingHandler) GetMonitoringStatus(c *fiber.Ctx) error {
 	brandID := c.Params("brand_id")
-	clientID := c.Get("X-Client-ID")
+	clientID := ""
+	if cid, ok := c.Locals("client_id").(string); ok && cid != "" {
+		clientID = cid
+	} else {
+		clientID = c.Get("X-Client-ID")
+	}
 
 	mcpReq := &mcp.MCPRequest{
 		RequestID: uuid.New().String(),
@@ -322,7 +352,12 @@ func (h *OnboardingHandler) GetMonitoringStatus(c *fiber.Ctx) error {
 
 // GetThreats obtém ameaças detectadas
 func (h *OnboardingHandler) GetThreats(c *fiber.Ctx) error {
-	clientID := c.Get("X-Client-ID")
+	clientID := ""
+	if cid, ok := c.Locals("client_id").(string); ok && cid != "" {
+		clientID = cid
+	} else {
+		clientID = c.Get("X-Client-ID")
+	}
 	brandID := c.Query("brand_id")
 	status := c.Query("status")
 	severity := c.Query("severity")

@@ -1,0 +1,13 @@
+nohup: ignoring input
+
+   _    ____   ____    _    
+  / \  |  _ \ / ___|  / \   
+ / _ \ | |_) | |     / _ \  
+/ ___ \|  _ <| |___ / ___ \ 
+/_/   \_\_| \_\\____/_/   \_\
+                            
+ARCA Gateway v1.0.0
+High-Performance API Gateway for ARCA Intelligence Platform
+2026/01/20 20:59:22 Environment: development
+2026/01/20 20:59:22 Starting server on 0.0.0.0:8080
+2026/01/20 20:59:22 Failed to start server: failed to listen: listen tcp4 0.0.0.0:8080: bind: address already in use

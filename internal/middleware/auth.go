@@ -67,11 +67,11 @@ func (m *AuthMiddleware) Authenticate() fiber.Handler {
 		c.Locals(ContextKeyRole, claims.Role)
 		c.Locals(ContextKeyScopes, claims.Scopes)
 
-		// Extrair client_id do header se presente
-		if clientID := c.Get("X-Client-ID"); clientID != "" {
-			if parsedID, err := uuid.Parse(clientID); err == nil {
-				c.Locals(ContextKeyClientID, parsedID)
-			}
+		// Extrair client_id do JWT (formato cli_xxx) ou do header
+		if claims.ClientID != "" {
+			c.Locals(ContextKeyClientID, claims.ClientID)
+		} else if clientID := c.Get("X-Client-ID"); clientID != "" {
+			c.Locals(ContextKeyClientID, clientID)
 		}
 
 		return c.Next()

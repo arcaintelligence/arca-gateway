@@ -42,6 +42,8 @@ type Claims struct {
 	TokenType TokenType `json:"token_type"`
 	Email     string    `json:"email,omitempty"`
 	Name      string    `json:"name,omitempty"`
+	ClientID  string    `json:"client_id,omitempty"`
+	Plan      string    `json:"plan,omitempty"`
 }
 
 // JWTManager gerencia operações com JWT
