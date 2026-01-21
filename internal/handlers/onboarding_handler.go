@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"net/http"
+
 	"github.com/arcaintelligence/arca-gateway/internal/mcp"
 	"github.com/arcaintelligence/arca-gateway/pkg/response"
 	"github.com/gofiber/fiber/v2"
@@ -102,7 +104,7 @@ func (h *OnboardingHandler) Register(c *fiber.Ctx) error {
 		},
 	}
 
-	resp, err := h.mcpClient.ProxyRequest(c.Context(), "/v1/onboarding/register", mcpReq)
+	resp, err := h.mcpClient.ProxyRequest(c.Context(), http.MethodPost, "/v1/onboarding/register", mcpReq)
 	if err != nil {
 		return response.Error(c, fiber.StatusBadGateway, "MCP_ERROR", "Failed to register client: "+err.Error())
 	}
@@ -128,7 +130,7 @@ func (h *OnboardingHandler) VerifyEmail(c *fiber.Ctx) error {
 		},
 	}
 
-	resp, err := h.mcpClient.ProxyRequest(c.Context(), "/v1/onboarding/verify-email", mcpReq)
+	resp, err := h.mcpClient.ProxyRequest(c.Context(), http.MethodPost, "/v1/onboarding/verify-email", mcpReq)
 	if err != nil {
 		return response.Error(c, fiber.StatusBadGateway, "MCP_ERROR", "Failed to verify email: "+err.Error())
 	}
@@ -181,15 +183,23 @@ func (h *OnboardingHandler) CreateBrand(c *fiber.Ctx) error {
 		}
 	}
 
+	var clientUUID *uuid.UUID
+	if clientID != "" {
+		if parsed, err := uuid.Parse(clientID); err == nil {
+			clientUUID = &parsed
+		}
+	}
+
 	mcpReq := &mcp.MCPRequest{
 		RequestID: uuid.New().String(),
 		TenantID:  uuid.New(),
+		ClientID:  clientUUID,
 		Tool:      "onboarding",
 		Action:    "create_brand",
 		Params:    params,
 	}
 
-	resp, err := h.mcpClient.ProxyRequest(c.Context(), "/v1/brands", mcpReq)
+	resp, err := h.mcpClient.ProxyRequest(c.Context(), http.MethodPost, "/v1/brands", mcpReq)
 	if err != nil {
 		return response.Error(c, fiber.StatusBadGateway, "MCP_ERROR", "Failed to create brand: "+err.Error())
 	}
@@ -207,18 +217,26 @@ func (h *OnboardingHandler) GetBrand(c *fiber.Ctx) error {
 		clientID = c.Get("X-Client-ID")
 	}
 
+	var clientUUID *uuid.UUID
+	if clientID != "" {
+		if parsed, err := uuid.Parse(clientID); err == nil {
+			clientUUID = &parsed
+		}
+	}
+
 	mcpReq := &mcp.MCPRequest{
 		RequestID: uuid.New().String(),
 		TenantID:  uuid.New(),
+		ClientID:  clientUUID,
 		Tool:      "onboarding",
-		Action:    "get_brand",
+		Action:    "get_monitoring_status",
 		Params: map[string]interface{}{
 			"brand_id":  brandID,
 			"client_id": clientID,
 		},
 	}
 
-	resp, err := h.mcpClient.ProxyRequest(c.Context(), "/v1/brands/"+brandID, mcpReq)
+	resp, err := h.mcpClient.ProxyRequest(c.Context(), http.MethodGet, "/v1/brands/"+brandID, mcpReq)
 	if err != nil {
 		return response.NotFound(c, "Brand not found: "+err.Error())
 	}
@@ -235,9 +253,17 @@ func (h *OnboardingHandler) ListBrands(c *fiber.Ctx) error {
 		clientID = c.Get("X-Client-ID")
 	}
 
+	var clientUUID *uuid.UUID
+	if clientID != "" {
+		if parsed, err := uuid.Parse(clientID); err == nil {
+			clientUUID = &parsed
+		}
+	}
+
 	mcpReq := &mcp.MCPRequest{
 		RequestID: uuid.New().String(),
 		TenantID:  uuid.New(),
+		ClientID:  clientUUID,
 		Tool:      "onboarding",
 		Action:    "list_brands",
 		Params: map[string]interface{}{
@@ -245,7 +271,7 @@ func (h *OnboardingHandler) ListBrands(c *fiber.Ctx) error {
 		},
 	}
 
-	resp, err := h.mcpClient.ProxyRequest(c.Context(), "/v1/brands", mcpReq)
+	resp, err := h.mcpClient.ProxyRequest(c.Context(), http.MethodGet, "/v1/brands", mcpReq)
 	if err != nil {
 		return response.Error(c, fiber.StatusBadGateway, "MCP_ERROR", "Failed to list brands: "+err.Error())
 	}
@@ -270,9 +296,17 @@ func (h *OnboardingHandler) StartMonitoring(c *fiber.Ctx) error {
 		req.Channels = []string{"web", "social"}
 	}
 
+	var clientUUID *uuid.UUID
+	if clientID != "" {
+		if parsed, err := uuid.Parse(clientID); err == nil {
+			clientUUID = &parsed
+		}
+	}
+
 	mcpReq := &mcp.MCPRequest{
 		RequestID: uuid.New().String(),
 		TenantID:  uuid.New(),
+		ClientID:  clientUUID,
 		Tool:      "monitoring",
 		Action:    "start",
 		Params: map[string]interface{}{
@@ -284,7 +318,7 @@ func (h *OnboardingHandler) StartMonitoring(c *fiber.Ctx) error {
 		},
 	}
 
-	resp, err := h.mcpClient.ProxyRequest(c.Context(), "/v1/brands/"+brandID+"/monitoring/start", mcpReq)
+	resp, err := h.mcpClient.ProxyRequest(c.Context(), http.MethodPost, "/v1/brands/"+brandID+"/monitoring/start", mcpReq)
 	if err != nil {
 		return response.Error(c, fiber.StatusBadGateway, "MCP_ERROR", "Failed to start monitoring: "+err.Error())
 	}
@@ -302,9 +336,17 @@ func (h *OnboardingHandler) StopMonitoring(c *fiber.Ctx) error {
 		clientID = c.Get("X-Client-ID")
 	}
 
+	var clientUUID *uuid.UUID
+	if clientID != "" {
+		if parsed, err := uuid.Parse(clientID); err == nil {
+			clientUUID = &parsed
+		}
+	}
+
 	mcpReq := &mcp.MCPRequest{
 		RequestID: uuid.New().String(),
 		TenantID:  uuid.New(),
+		ClientID:  clientUUID,
 		Tool:      "monitoring",
 		Action:    "stop",
 		Params: map[string]interface{}{
@@ -313,7 +355,7 @@ func (h *OnboardingHandler) StopMonitoring(c *fiber.Ctx) error {
 		},
 	}
 
-	resp, err := h.mcpClient.ProxyRequest(c.Context(), "/v1/brands/"+brandID+"/monitoring/stop", mcpReq)
+	resp, err := h.mcpClient.ProxyRequest(c.Context(), http.MethodPost, "/v1/brands/"+brandID+"/monitoring/stop", mcpReq)
 	if err != nil {
 		return response.Error(c, fiber.StatusBadGateway, "MCP_ERROR", "Failed to stop monitoring: "+err.Error())
 	}
@@ -331,9 +373,17 @@ func (h *OnboardingHandler) GetMonitoringStatus(c *fiber.Ctx) error {
 		clientID = c.Get("X-Client-ID")
 	}
 
+	var clientUUID *uuid.UUID
+	if clientID != "" {
+		if parsed, err := uuid.Parse(clientID); err == nil {
+			clientUUID = &parsed
+		}
+	}
+
 	mcpReq := &mcp.MCPRequest{
 		RequestID: uuid.New().String(),
 		TenantID:  uuid.New(),
+		ClientID:  clientUUID,
 		Tool:      "monitoring",
 		Action:    "status",
 		Params: map[string]interface{}{
@@ -342,7 +392,7 @@ func (h *OnboardingHandler) GetMonitoringStatus(c *fiber.Ctx) error {
 		},
 	}
 
-	resp, err := h.mcpClient.ProxyRequest(c.Context(), "/v1/brands/"+brandID+"/monitoring/status", mcpReq)
+	resp, err := h.mcpClient.ProxyRequest(c.Context(), http.MethodGet, "/v1/brands/"+brandID+"/monitoring/status", mcpReq)
 	if err != nil {
 		return response.Error(c, fiber.StatusBadGateway, "MCP_ERROR", "Failed to get monitoring status: "+err.Error())
 	}
@@ -362,9 +412,17 @@ func (h *OnboardingHandler) GetThreats(c *fiber.Ctx) error {
 	status := c.Query("status")
 	severity := c.Query("severity")
 
+	var clientUUID *uuid.UUID
+	if clientID != "" {
+		if parsed, err := uuid.Parse(clientID); err == nil {
+			clientUUID = &parsed
+		}
+	}
+
 	mcpReq := &mcp.MCPRequest{
 		RequestID: uuid.New().String(),
 		TenantID:  uuid.New(),
+		ClientID:  clientUUID,
 		Tool:      "threats",
 		Action:    "list",
 		Params: map[string]interface{}{
@@ -375,7 +433,7 @@ func (h *OnboardingHandler) GetThreats(c *fiber.Ctx) error {
 		},
 	}
 
-	resp, err := h.mcpClient.ProxyRequest(c.Context(), "/v1/threats", mcpReq)
+	resp, err := h.mcpClient.ProxyRequest(c.Context(), http.MethodGet, "/v1/threats", mcpReq)
 	if err != nil {
 		return response.Error(c, fiber.StatusBadGateway, "MCP_ERROR", "Failed to get threats: "+err.Error())
 	}

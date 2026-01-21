@@ -8,6 +8,16 @@ nohup: ignoring input
                             
 ARCA Gateway v1.0.0
 High-Performance API Gateway for ARCA Intelligence Platform
-2026/01/20 20:59:22 Environment: development
-2026/01/20 20:59:22 Starting server on 0.0.0.0:8080
-2026/01/20 20:59:22 Failed to start server: failed to listen: listen tcp4 0.0.0.0:8080: bind: address already in use
+2026/01/21 14:11:06 Environment: development
+2026/01/21 14:11:06 Starting server on 0.0.0.0:8080
+
+ ┌───────────────────────────────────────────────────┐ 
+ │                   ARCA Gateway                    │ 
+ │                  Fiber v2.52.10                   │ 
+ │               http://127.0.0.1:8080               │ 
+ │       (bound on host 0.0.0.0 and port 8080)       │ 
+ │                                                   │ 
+ │ Handlers ............ 68  Processes ........... 1 │ 
+ │ Prefork ....... Disabled  PID ............. 33909 │ 
+ └───────────────────────────────────────────────────┘ 
+

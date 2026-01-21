@@ -134,7 +134,7 @@ func (c *MCPClient) Hunt(ctx context.Context, req *MCPRequest, huntReq *HuntRequ
 		"keywords":      huntReq.Keywords,
 	}
 
-	resp, err := c.execute(ctx, "/v1/hunt", req)
+	resp, err := c.execute(ctx, http.MethodPost, "/v1/hunt", req)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +190,7 @@ func (c *MCPClient) ScanURL(ctx context.Context, req *MCPRequest, scanReq *ScanR
 		"follow_redirects": scanReq.FollowRedirects,
 	}
 
-	resp, err := c.execute(ctx, "/v1/scan", req)
+	resp, err := c.execute(ctx, http.MethodPost, "/v1/scan", req)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +246,7 @@ func (c *MCPClient) CreateMonitorJob(ctx context.Context, req *MCPRequest, monit
 		"enabled_checks": monitorReq.EnabledChecks,
 	}
 
-	resp, err := c.execute(ctx, "/v1/monitor/jobs", req)
+	resp, err := c.execute(ctx, http.MethodPost, "/v1/monitor/jobs", req)
 	if err != nil {
 		return nil, err
 	}
@@ -277,7 +277,7 @@ func (c *MCPClient) StopMonitorJob(ctx context.Context, req *MCPRequest, jobID u
 		"job_id": jobID.String(),
 	}
 
-	_, err := c.execute(ctx, fmt.Sprintf("/v1/monitor/jobs/%s/stop", jobID), req)
+	_, err := c.execute(ctx, http.MethodPost, fmt.Sprintf("/v1/monitor/jobs/%s/stop", jobID), req)
 	return err
 }
 
@@ -314,7 +314,7 @@ func (c *MCPClient) AnalyzeURL(ctx context.Context, req *MCPRequest, analyzeReq 
 		"deep_analysis": analyzeReq.DeepAnalysis,
 	}
 
-	resp, err := c.execute(ctx, "/v1/analyze", req)
+	resp, err := c.execute(ctx, http.MethodPost, "/v1/analyze", req)
 	if err != nil {
 		return nil, err
 	}
@@ -370,7 +370,7 @@ func (c *MCPClient) SearchLeaks(ctx context.Context, req *MCPRequest, searchReq 
 		"max_results": searchReq.MaxResults,
 	}
 
-	resp, err := c.execute(ctx, "/v1/leaks/search", req)
+	resp, err := c.execute(ctx, http.MethodPost, "/v1/leaks/search", req)
 	if err != nil {
 		return nil, err
 	}
@@ -400,8 +400,8 @@ func (c *MCPClient) SearchLeaks(ctx context.Context, req *MCPRequest, searchReq 
 // =============================================================================
 
 // ProxyRequest faz proxy de uma request genérica para o Core Python
-func (c *MCPClient) ProxyRequest(ctx context.Context, endpoint string, req *MCPRequest) (*MCPResponse, error) {
-	return c.execute(ctx, endpoint, req)
+func (c *MCPClient) ProxyRequest(ctx context.Context, method, endpoint string, req *MCPRequest) (*MCPResponse, error) {
+	return c.execute(ctx, method, endpoint, req)
 }
 
 // =============================================================================
@@ -409,7 +409,7 @@ func (c *MCPClient) ProxyRequest(ctx context.Context, endpoint string, req *MCPR
 // =============================================================================
 
 // execute executa uma request para o MCP com retry
-func (c *MCPClient) execute(ctx context.Context, endpoint string, req *MCPRequest) (*MCPResponse, error) {
+func (c *MCPClient) execute(ctx context.Context, method, endpoint string, req *MCPRequest) (*MCPResponse, error) {
 	var lastErr error
 
 	for attempt := 0; attempt <= c.maxRetries; attempt++ {
@@ -417,7 +417,7 @@ func (c *MCPClient) execute(ctx context.Context, endpoint string, req *MCPReques
 			time.Sleep(c.retryDelay * time.Duration(attempt))
 		}
 
-		resp, err := c.doRequest(ctx, endpoint, req)
+		resp, err := c.doRequest(ctx, method, endpoint, req)
 		if err != nil {
 			lastErr = err
 			// Não fazer retry para erros de autorização/forbidden
@@ -434,7 +434,7 @@ func (c *MCPClient) execute(ctx context.Context, endpoint string, req *MCPReques
 }
 
 // doRequest executa uma request HTTP para o MCP
-func (c *MCPClient) doRequest(ctx context.Context, endpoint string, req *MCPRequest) (*MCPResponse, error) {
+func (c *MCPClient) doRequest(ctx context.Context, method, endpoint string, req *MCPRequest) (*MCPResponse, error) {
 	// Serializar request
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -442,7 +442,7 @@ func (c *MCPClient) doRequest(ctx context.Context, endpoint string, req *MCPRequ
 	}
 
 	// Criar HTTP request
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+endpoint, bytes.NewReader(body))
+	httpReq, err := http.NewRequestWithContext(ctx, method, c.baseURL+endpoint, bytes.NewReader(body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
