@@ -152,6 +152,8 @@ type Brand struct {
 	TenantID        uuid.UUID     `json:"tenant_id" db:"tenant_id"`
 	Name            string        `json:"name" db:"name"`
 	PrimaryDomain   string        `json:"primary_domain" db:"primary_domain"`
+	Industry        string        `json:"industry,omitempty" db:"industry"`
+	MonitoringEnabled bool        `json:"monitoring_enabled" db:"monitoring_enabled"`
 	Status          Status        `json:"status" db:"status"`
 	Config          BrandConfig   `json:"config" db:"config"`
 	MonitoringJobID *uuid.UUID    `json:"monitoring_job_id,omitempty" db:"monitoring_job_id"`

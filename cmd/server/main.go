@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"database/sql"
 	"github.com/arcaintelligence/arca-gateway/internal/auth"
 	"github.com/arcaintelligence/arca-gateway/internal/config"
 	"github.com/arcaintelligence/arca-gateway/internal/handlers"
@@ -17,6 +18,7 @@ import (
 	"github.com/arcaintelligence/arca-gateway/internal/services"
 	"github.com/arcaintelligence/arca-gateway/pkg/response"
 	"github.com/gofiber/fiber/v2"
+	_ "github.com/lib/pq"
 )
 
 const (
@@ -41,6 +43,21 @@ func main() {
 	cfg := config.Load()
 	log.Printf("Environment: %s", cfg.Server.Environment)
 
+	// Conectar ao Banco de Dados
+	dbConnStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		cfg.Database.Host, cfg.Database.Port, cfg.Database.User, cfg.Database.Password, cfg.Database.Name, cfg.Database.SSLMode)
+	
+	db, err := sql.Open("postgres", dbConnStr)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+	defer db.Close()
+
+	if err := db.Ping(); err != nil {
+		log.Fatalf("Failed to ping database: %v", err)
+	}
+	log.Println("Connected to database successfully")
+
 	// Criar JWT Manager
 	jwtManager := auth.NewJWTManager(
 		cfg.JWT.Secret,
@@ -59,9 +76,9 @@ func main() {
 	})
 
 	// Criar Services
-	userService := services.NewUserService()
-	clientService := services.NewClientService()
-	brandService := services.NewBrandService()
+	userService := services.NewUserService(db)
+	clientService := services.NewClientService(db)
+	brandService := services.NewBrandService(db)
 
 	// Criar Handlers
 	authHandler := handlers.NewAuthHandler(jwtManager, userService)

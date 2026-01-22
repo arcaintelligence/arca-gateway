@@ -1,0 +1,23 @@
+
+   _    ____   ____    _    
+  / \  |  _ \ / ___|  / \   
+ / _ \ | |_) | |     / _ \  
+/ ___ \|  _ <| |___ / ___ \ 
+/_/   \_\_| \_\\____/_/   \_\
+                            
+ARCA Gateway v1.0.0
+High-Performance API Gateway for ARCA Intelligence Platform
+2026/01/21 20:04:31 Environment: development
+2026/01/21 20:04:31 Connected to database successfully
+2026/01/21 20:04:31 Starting server on 0.0.0.0:8082
+
+ ┌───────────────────────────────────────────────────┐ 
+ │                   ARCA Gateway                    │ 
+ │                  Fiber v2.52.10                   │ 
+ │               http://127.0.0.1:8082               │ 
+ │       (bound on host 0.0.0.0 and port 8082)       │ 
+ │                                                   │ 
+ │ Handlers ............ 68  Processes ........... 1 │ 
+ │ Prefork ....... Disabled  PID ............. 75742 │ 
+ └───────────────────────────────────────────────────┘ 
+
